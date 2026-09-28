@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://c5qhyuctvc26m"]
+
+[ext_resource type="Script" uid="uid://c3d7wl5g1aks0" path="res://player/first_person_player.gd" id="1_y3mll"]
+[ext_resource type="Texture2D" uid="uid://wlxgm4wl7036" path="res://player/crosshair.tres" id="3_ni121"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6unth"]
+radius = 0.25
+height = 1.6
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_1v1wt"]
+radius = 0.25
+
+[node name="FirstPersonCharacter" type="CharacterBody3D" unique_id=743034332]
+collision_layer = 16
+script = ExtResource("1_y3mll")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=688248866]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_6unth")
+
+[node name="Head" type="CharacterBody3D" parent="." unique_id=1448998387]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0)
+collision_layer = 16
+
+[node name="Camera" type="Camera3D" parent="Head" unique_id=1288420055]
+unique_name_in_owner = true
+current = true
+
+[node name="InteractRay" type="RayCast3D" parent="Head/Camera" unique_id=503782457]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0)
+target_position = Vector3(0, -2, 0)
+collision_mask = 2
+collide_with_areas = true
+
+[node name="CenterContainer" type="CenterContainer" parent="Head/Camera" unique_id=1332956341]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="Head/Camera/CenterContainer" unique_id=62715061]
+modulate = Color(1, 1, 1, 0.36078432)
+layout_mode = 2
+texture = ExtResource("3_ni121")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Head" unique_id=1511988174]
+unique_name_in_owner = true
+shape = SubResource("SphereShape3D_1v1wt")
