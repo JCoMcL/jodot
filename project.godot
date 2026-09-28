@@ -1,0 +1,11 @@
+; Engine configuration file.
+; jodot is developed as a standalone Godot project so the utilities can be
+; validated and updated on their own, then shared into projects as
+; res://addons/jodot.
+
+config_version=5
+
+[application]
+
+config/name="jodot"
+config/features=PackedStringArray("4.6", "GL Compatibility")

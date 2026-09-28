@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bf4en5m778svj"]
+
+[ext_resource type="Shader" uid="uid://bwxb0swelltf6" path="res://vfx/sprite_fx.gdshader" id="1_srfc1"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_srfc1")
+shader_parameter/light = Color(1, 0.321569, 0.466667, 1)
+shader_parameter/midtone = Color(0.678431, 0.184314, 0.270588, 1)
+shader_parameter/dark = Color(0.470588, 0.113725, 0.309804, 1)
+shader_parameter/apply_palette = false
+shader_parameter/scale = Vector2(1, 1)
+shader_parameter/mosaic = 1.0
+shader_parameter/rotation = 0.0
