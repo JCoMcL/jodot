@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://bv26taonuyojt"]
+
+[ext_resource type="Texture2D" uid="uid://cacwmdrr4kxdi" path="res://Ui/Alert Bar.png" id="1_du3tw"]
+[ext_resource type="Texture2D" uid="uid://bffb44k0st47j" path="res://Ui/Alert Bar Over.png" id="2_ryua0"]
+
+[node name="AlarmMeater" type="TextureProgressBar" unique_id=250211149]
+offset_right = 1920.0
+offset_bottom = 500.0
+scale = Vector2(0.12, 0.12)
+texture_under = ExtResource("1_du3tw")
+texture_progress = ExtResource("2_ryua0")
+
+[node name="MaxAlarm" type="Label" parent="." unique_id=1979753275]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0

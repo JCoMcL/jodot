@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://c6ecl0aklwkiq"]
+
+[ext_resource type="Script" uid="uid://c3bfip3x378k1" path="res://ui/inventory_panel.gd" id="1_shgow"]
+
+[node name="InventoryPanel" type="Control" unique_id=1029067927]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = 70.0
+offset_top = 140.0
+offset_right = 70.0
+offset_bottom = 70.0
+script = ExtResource("1_shgow")
+
+[node name="GridContainer" type="GridContainer" parent="." unique_id=995803429]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+columns = 25
