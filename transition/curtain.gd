@@ -2,35 +2,85 @@
 class_name Curtain
 extends ColorRect
 
-@export var duration = 0.5
+## A full-screen wipe used to hide a level change behind. Assign any
+## curtain-shaped [ShaderMaterial] and drive it with [method close] and
+## [method open].
+##
+## The material must expose a `factor` float where **1.0 is fully closed and
+## 0.0 fully open**, which is the convention [code]curtain.gdshader[/code] and
+## [code]curtain_thats_all_folks.gdshader[/code] both follow. A `direction`
+## uniform (0 down, 1 up, 2 left, 3 right) is set if the shader has one and
+## ignored if it doesn't, so the two bundled shaders are interchangeable: drag
+## either .tres onto [member CanvasItem.material] and it just works.
+
+## The screen edge the curtain travels from, and back to.
+enum {DOWN, UP, LEFT, RIGHT}
+
+## Default length of a wipe, in seconds.
+@export var duration := 0.5
+
+## Which way the curtain wipes on the first [method open].
+@export var direction := UP
+
+## Whether [method open] runs on entering the tree, so a curtain doesn't start
+## the game stuck shut.
+@export var open_on_ready := true
+
 @export_tool_button("close", "ControlAlignCenter") var close_button = close
 @export_tool_button("open", "ControlAlignFullRect") var open_button = open
 
-func set_openness(f: float):
-	material.set_shader_parameter("factor", 1.0-f)
-func get_openness():
-	return 1.0 - material.get_shader_parameter("factor")
-
 var current_tween: Tween
+
+## How closed the curtain is, 0 (open) to 1 (closed).
+func get_openness() -> float:
+	var f = material.get_shader_parameter("factor")
+	return 1.0 - (f if f is float else 1.0)
+
+## Sets how closed the curtain is, 0 (open) to 1 (closed).
+func set_openness(f: float) -> void:
+	material.set_shader_parameter("factor", 1.0 - f)
+
+## True if the current material's shader has a [param param_name] uniform.
+func has_param(param_name: StringName) -> bool:
+	var m := material as ShaderMaterial
+	if not m or not m.shader:
+		return false
+	for u in m.shader.get_shader_uniform_list():
+		if u.name == param_name:
+			return true
+	return false
+
+## Kills any wipe in progress and starts a fresh one.
 func new_tween() -> Tween:
 	if current_tween and current_tween.is_valid():
 		current_tween.kill()
 	current_tween = create_tween()
 	return current_tween
 
-func _ready():
-	open()
-
-enum {DOWN, UP, LEFT, RIGHT}
-func close(direction=DOWN, specific_duration = duration):
-	visible=true
-	material.set_shader_parameter("direction", direction)
+## Wipes the curtain shut. Returns the tween's [code]finished[/code] signal, so
+## `await curtain.close()` waits for it.
+func close(from_direction := direction, specific_duration := duration) -> Signal:
+	_set_direction(from_direction)
+	visible = true
 	var t = new_tween()
 	t.tween_method(set_openness, get_openness(), 0.0, specific_duration * get_openness())
-	await t.finished
-func open(direction=UP, specific_duration = duration):
-	material.set_shader_parameter("direction", [UP,DOWN,RIGHT,LEFT][direction])
+	return t.finished
+
+## Wipes the curtain away. Returns the tween's [code]finished[/code] signal.
+func open(to_direction := direction, specific_duration := duration) -> Signal:
+	_set_direction(to_direction)
 	var t = new_tween()
-	t.tween_method(set_openness, get_openness(), 1.0, specific_duration* (1.0 - get_openness()))
-	await t.finished
-	visible = false
+	t.tween_method(set_openness, get_openness(), 1.0, specific_duration * (1.0 - get_openness()))
+	# hide once fully retracted, so it stops eating mouse input
+	t.finished.connect(func (): visible = false)
+	return t.finished
+
+## Only set if the shader actually has the uniform, so swapping in the dither
+## shader (which has no direction) stays quiet.
+func _set_direction(dir: int) -> void:
+	if has_param(&"direction"):
+		material.set_shader_parameter("direction", dir)
+
+func _ready() -> void:
+	if open_on_ready:
+		open()

@@ -1,0 +1,13 @@
+[gd_resource type="NoiseTexture2D" load_steps=2 format=3 uid="uid://bn4x2q0vd8sc1"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_curtain"]
+seed = 0
+noise_type = 1
+frequency = 0.015
+
+[resource]
+width = 128
+height = 128
+seamless = true
+generate_mipmaps = false
+noise = SubResource("FastNoiseLite_curtain")

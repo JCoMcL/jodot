@@ -1,8 +1,11 @@
-[gd_scene format=3 uid="uid://bp7w0rbvscf1"]
+[gd_scene load_steps=3 format=3 uid="uid://bp7w0rbvscf1"]
 
 [ext_resource type="Material" uid="uid://bmfwdpbtlok7y" path="res://transition/curtain_thats_all_folks.tres" id="1_8vaes"]
+[ext_resource type="Script" uid="uid://cxvgq4dxm0ghd" path="res://transition/level-container.gd" id="2_container"]
+[ext_resource type="Script" uid="uid://crs1s25mbl4em" path="res://transition/curtain.gd" id="3_curtain"]
 
 [node name="LevelContainer" type="Node2D" unique_id=677424085]
+script = ExtResource("2_container")
 
 [node name="Overlay" type="CanvasLayer" parent="." unique_id=642229952]
 
@@ -15,3 +18,4 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.133333, 0.12549, 0.203922, 1)
+script = ExtResource("3_curtain")
