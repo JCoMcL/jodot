@@ -26,4 +26,10 @@ clean:
 trim-whitespace:
 	find -name '*.gd' | xargs -d '\n' sed -Ei 's/[ 	]+$$//'
 
-.PHONY: clean build build-windows build-linux trim-whitespace downscale-textures
+# Regenerates .docs/ from the installed engine. Godot erases the old docs itself.
+# .PHONY because .docs is a real directory: without it this would run only once.
+.docs:
+	mkdir -p .docs
+	godot --headless --doctool .docs
+
+.PHONY: clean build build-windows build-linux trim-whitespace downscale-textures .docs
