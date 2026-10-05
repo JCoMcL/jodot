@@ -25,7 +25,7 @@ func get_label()->RichTextLabel:
 	return get_child(0).get_child(0)
 
 func play_sfx():
-	SFXPlayer.get_sfx_player(self).play_sfx(sfx)
+	SFX.get_sfx_player(self).play_sfx(sfx)
 
 var text_reveal_cumer = Cumer.new(40)
 var sfx_cumer = Cumer.new(20, play_sfx)

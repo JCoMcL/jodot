@@ -1,24 +1,34 @@
 @tool
 extends Node
+class_name U2ls
+
+# --- defaults, for static callers with no node in hand ---
+
+static func _viewport(relative_to: Node = null) -> Viewport:
+	if relative_to:
+		return relative_to.get_viewport()
+	return (Engine.get_main_loop() as SceneTree).root
+
+static func _world(world: World2D = null) -> World2D:
+	if world:
+		return world
+	return _viewport().get_world_2d()
 
 # --- physics ---
 
 enum {AREAS, BODIES, AREAS_AND_BODIES}
-func configure_query_parameters(pq: Object, mask, collider_type):
+static func configure_query_parameters(pq: Object, mask, collider_type):
 	pq.collide_with_areas = (collider_type == AREAS || collider_type == AREAS_AND_BODIES)
 	pq.collide_with_bodies = (collider_type == BODIES || collider_type == AREAS_AND_BODIES)
 	pq.collision_mask = Layers.physics2D[mask] if mask is String else mask
 
-func get_objects_at(where: Vector2, mask=65535, collider_type=AREAS_AND_BODIES, world: World2D=null) -> Array:
+static func get_objects_at(where: Vector2, mask=65535, collider_type=AREAS_AND_BODIES, world: World2D=null) -> Array:
 	var pq := PhysicsPointQueryParameters2D.new()
 	configure_query_parameters(pq, mask, collider_type)
 	pq.position = where
-	if ! world:
-		world=get_viewport().get_world_2d()
+	return _world(world).direct_space_state.intersect_point(pq).map(func (d): return d.collider)
 
-	return world.direct_space_state.intersect_point(pq).map(func (d): return d.collider)
-
-func get_objects_under_body(what: Node2D, mask=65532, collider_type=AREAS_AND_BODIES, world: World2D=null) -> Array[Node2D]:
+static func get_objects_under_body(what: Node2D, mask=65532, collider_type=AREAS_AND_BODIES, world: World2D=null) -> Array[Node2D]:
 	var out: Array[Node2D]
 	if what is CollisionObject2D:
 		for c in what.get_children():
@@ -30,28 +40,26 @@ func get_objects_under_body(what: Node2D, mask=65532, collider_type=AREAS_AND_BO
 		pq.shape = what.shape
 		pq.transform = what.global_transform
 		configure_query_parameters(pq, mask, collider_type)
-		if ! world:
-			world=get_viewport().get_world_2d()
-		var result = world.direct_space_state.intersect_shape(pq)
+		var result = _world(world).direct_space_state.intersect_shape(pq)
 		for o in result:
 			out.append(o.collider)
 	return out
 
 # --- coordinates ---
 
-func viewport_to_world(v: Vector2, relative_to: Node = self):
-	var vp = relative_to.get_viewport()
+static func viewport_to_world(v: Vector2, relative_to: Node = null):
+	var vp = _viewport(relative_to)
 	return vp.global_canvas_transform.affine_inverse() * vp.canvas_transform.affine_inverse() * v
 
-func get_viewport_world_rect(relative_to: Node = self) -> Rect2:
-	var r = relative_to.get_viewport().get_visible_rect()
+static func get_viewport_world_rect(relative_to: Node = null) -> Rect2:
+	var r = _viewport(relative_to).get_visible_rect()
 	var start = viewport_to_world(r.position, relative_to)
 	var end = viewport_to_world(r.end, relative_to)
 	return Rect2(start, end - start)
 
 # --- rects ---
 
-func union_rect(a: Array[Rect2]) -> Rect2:
+static func union_rect(a: Array[Rect2]) -> Rect2:
 	if not a:
 		return Rect2()
 
@@ -65,7 +73,7 @@ func union_rect(a: Array[Rect2]) -> Rect2:
 
 	return Rect2(top_left, bottom_right - top_left)
 
-func four_corners(r: Rect2) -> Array[Vector2]:
+static func four_corners(r: Rect2) -> Array[Vector2]:
 	return [
 		r.position,
 		Vector2(r.position.x, r.end.y),
@@ -73,10 +81,10 @@ func four_corners(r: Rect2) -> Array[Vector2]:
 		Vector2(r.end.x, r.position.y)
 	]
 
-func nearest(f: float, a: float, b: float):
+static func nearest(f: float, a: float, b: float):
 	return a if abs(f-a) < abs(f-b) else b
 
-func get_nearest_point_on_perimeter(r: Rect2, p: Vector2):
+static func get_nearest_point_on_perimeter(r: Rect2, p: Vector2):
 	p.x =  clampf(p.x, r.position.x, r.end.x)
 	p.y =  clampf(p.y, r.position.y, r.end.y)
 	var nearest_x = nearest(p.x, r.position.x, r.end.x)
@@ -86,7 +94,7 @@ func get_nearest_point_on_perimeter(r: Rect2, p: Vector2):
 	else:
 		return Vector2(nearest_x, p.y)
 
-func nearest_overlapping_position(inner: Rect2, outer: Rect2) -> Vector2:
+static func nearest_overlapping_position(inner: Rect2, outer: Rect2) -> Vector2:
 	if outer.encloses(inner):
 		return inner.position
 
@@ -110,19 +118,19 @@ func nearest_overlapping_position(inner: Rect2, outer: Rect2) -> Vector2:
 
 	return new_pos
 
-func globalise_rect(r: Rect2, rect_owner: Node2D):
+static func globalise_rect(r: Rect2, rect_owner: Node2D):
 	r.position *= rect_owner.global_scale
 	r.position += rect_owner.global_position
 	r.size *= rect_owner.global_scale
 	return r
 
-func localise_rect(r: Rect2, rect_owner: Node2D):
+static func localise_rect(r: Rect2, rect_owner: Node2D):
 	r.position -= rect_owner.global_position
 	r.position /= rect_owner.global_scale
 	r.size /= rect_owner.global_scale
 	return r
 
-func get_global_rect(n: Node2D) -> Rect2:
+static func get_global_rect(n: Node2D) -> Rect2:
 	if not n:
 		return Rect2()
 
@@ -150,12 +158,12 @@ func get_global_rect(n: Node2D) -> Rect2:
 	push_warning("Warn: get_global_rect: no support for object: %s" % n)
 	return Rect2(n.global_position, Vector2.ZERO)
 
-func get_local_rect(n: Node2D) -> Rect2:
+static func get_local_rect(n: Node2D) -> Rect2:
 	return localise_rect(get_global_rect(n), n)
 
 # --- canvas ---
 
-func get_canvas_item_global_z(node: CanvasItem) -> int:
+static func get_canvas_item_global_z(node: CanvasItem) -> int:
 	if not node.z_as_relative:
 		return node.z_index
 	var parent = node.get_parent()
