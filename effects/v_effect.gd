@@ -17,7 +17,7 @@ func play(s: VFX.Subframes, loops:int = 1):
 	while playing:
 		for i in range(s.end - s.start + 1):
 			frame = s.start + i
-			await Utils.delay(1.0/s.rate)
+			await Yute.delay(1.0/s.rate)
 			if not playing:
 				break
 		loops -= 1

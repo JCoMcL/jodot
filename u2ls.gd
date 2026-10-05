@@ -1,13 +1,13 @@
 @tool
 extends Node
 
-# --- collision ---
+# --- physics ---
 
 enum {AREAS, BODIES, AREAS_AND_BODIES}
 func configure_query_parameters(pq: Object, mask, collider_type):
 	pq.collide_with_areas = (collider_type == AREAS || collider_type == AREAS_AND_BODIES)
 	pq.collide_with_bodies = (collider_type == BODIES || collider_type == AREAS_AND_BODIES)
-	pq.collision_mask = Layers.layers[mask] if mask is String else mask
+	pq.collision_mask = Layers.physics2D[mask] if mask is String else mask
 
 func get_objects_at(where: Vector2, mask=65535, collider_type=AREAS_AND_BODIES, world: World2D=null) -> Array:
 	var pq := PhysicsPointQueryParameters2D.new()
@@ -43,6 +43,12 @@ func viewport_to_world(v: Vector2, relative_to: Node = self):
 	var vp = relative_to.get_viewport()
 	return vp.global_canvas_transform.affine_inverse() * vp.canvas_transform.affine_inverse() * v
 
+func get_viewport_world_rect(relative_to: Node = self) -> Rect2:
+	var r = relative_to.get_viewport().get_visible_rect()
+	var start = viewport_to_world(r.position, relative_to)
+	var end = viewport_to_world(r.end, relative_to)
+	return Rect2(start, end - start)
+
 # --- rects ---
 
 func union_rect(a: Array[Rect2]) -> Rect2:
@@ -59,6 +65,51 @@ func union_rect(a: Array[Rect2]) -> Rect2:
 
 	return Rect2(top_left, bottom_right - top_left)
 
+func four_corners(r: Rect2) -> Array[Vector2]:
+	return [
+		r.position,
+		Vector2(r.position.x, r.end.y),
+		r.end,
+		Vector2(r.end.x, r.position.y)
+	]
+
+func nearest(f: float, a: float, b: float):
+	return a if abs(f-a) < abs(f-b) else b
+
+func get_nearest_point_on_perimeter(r: Rect2, p: Vector2):
+	p.x =  clampf(p.x, r.position.x, r.end.x)
+	p.y =  clampf(p.y, r.position.y, r.end.y)
+	var nearest_x = nearest(p.x, r.position.x, r.end.x)
+	var nearest_y = nearest(p.y, r.position.y, r.end.y)
+	if abs(p.x - nearest_x) > abs(nearest_y - p.y):
+		return Vector2(p.x, nearest_y)
+	else:
+		return Vector2(nearest_x, p.y)
+
+func nearest_overlapping_position(inner: Rect2, outer: Rect2) -> Vector2:
+	if outer.encloses(inner):
+		return inner.position
+
+	# return inner's position plus the offset of the furthest vertex from outer
+	var new_pos = four_corners(inner).filter(func(p):
+		return not outer.has_point(p) #only outside points
+	).map(func(v):
+		return get_nearest_point_on_perimeter(outer, v) - v
+	).reduce(func(v:Vector2, longest):
+		return v if v.length_squared() > longest.length_squared() else longest
+	) * 1.01 + inner.position
+
+	if inner.size.x >= outer.size.x:
+		new_pos.x = outer.position.x - (inner.size.x - outer.size.x) / 2
+	if inner.size.y >= outer.size.y:
+		new_pos.y = outer.position.y - (inner.size.y - outer.size.y) / 2
+
+	#test that it works
+	var new_inner = Rect2(new_pos, inner.size)
+	assert(outer.encloses(new_inner) or inner.size.x >= outer.size.x or inner.size.y >= outer.size.y)
+
+	return new_pos
+
 func globalise_rect(r: Rect2, rect_owner: Node2D):
 	r.position *= rect_owner.global_scale
 	r.position += rect_owner.global_position
@@ -72,10 +123,19 @@ func localise_rect(r: Rect2, rect_owner: Node2D):
 	return r
 
 func get_global_rect(n: Node2D) -> Rect2:
-	if n.has_method("get_global_rect"):
-		return n.get_global_rect()
-	if n.has_method("get_rect"):
-		return globalise_rect(n.get_rect(), n)
+	if not n:
+		return Rect2()
+
+	var s = n.get_script()
+	if not Engine.is_editor_hint() or not s or s.is_tool():
+		if n.has_method("get_global_rect"):
+			return n.get_global_rect()
+		if n.has_method("get_rect"):
+			return globalise_rect(n.get_rect(), n)
+
+	if n is CollisionShape2D and n.shape:
+		return globalise_rect(n.shape.get_rect(), n)
+
 	if n is CollisionObject2D:
 		var shape_rects: Array[Rect2]
 		for id in n.get_shape_owners():
@@ -84,47 +144,21 @@ func get_global_rect(n: Node2D) -> Rect2:
 				var r = n.shape_owner_get_shape(id, i).get_rect()
 				r.position += offset
 				shape_rects.append(r)
-		return globalise_rect(union_rect(shape_rects), n)
+		if shape_rects:
+			return globalise_rect(union_rect(shape_rects), n)
+
 	push_warning("Warn: get_global_rect: no support for object: %s" % n)
-	return Rect2()
+	return Rect2(n.global_position, Vector2.ZERO)
 
 func get_local_rect(n: Node2D) -> Rect2:
 	return localise_rect(get_global_rect(n), n)
 
-# --- nodes ---
+# --- canvas ---
 
-func get_ancestry(n: Node) -> Array[Node]:
-	var out: Array[Node]
-	var current = n
-	while current:
-		out.append(current)
-		current = current.get_parent()
-	out.reverse()
-	return out
-
-# --- time ---
-
-func delay(secs):
-	await get_tree().create_timer(secs).timeout
-
-# --- random ---
-
-var rng = RandomNumberGenerator.new()
-func triangular_distribution(lower: float = -1.0, upper: float = 1.0) -> float:
-	return rng.randf_range(upper, lower) + rng.randf_range(upper, lower)
-
-func percent_chance(i):
-	return rng.randf() * 100 < i
-
-func cointoss() -> bool:
-	return randf() < 0.5
-
-func randf_exp():
-	return rng.randf() ** 2
-
-func pick_random_exp(a: Array):
-	## each successive element is less likely to be picked
-	return a[ int((randf_exp()) * a.size()) ]
-
-func vary(f: float, factor: float):
-	return f + (randf() - 0.5) * f * factor
+func get_canvas_item_global_z(node: CanvasItem) -> int:
+	if not node.z_as_relative:
+		return node.z_index
+	var parent = node.get_parent()
+	if parent is CanvasItem:
+		return node.z_index + get_canvas_item_global_z(parent)
+	return node.z_index
