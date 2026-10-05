@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bp7w0rbvscf1"]
+[gd_scene format=3 uid="uid://bp7w0rbvscf1"]
 
 [ext_resource type="Material" uid="uid://bmfwdpbtlok7y" path="res://transition/curtain_thats_all_folks.tres" id="1_8vaes"]
 [ext_resource type="Script" uid="uid://cxvgq4dxm0ghd" path="res://transition/level-container.gd" id="2_container"]
@@ -10,6 +10,7 @@ script = ExtResource("2_container")
 [node name="Overlay" type="CanvasLayer" parent="." unique_id=642229952]
 
 [node name="Curtain" type="ColorRect" parent="Overlay" unique_id=990418107]
+visible = false
 material = ExtResource("1_8vaes")
 anchors_preset = 15
 anchor_right = 1.0

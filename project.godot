@@ -11,4 +11,5 @@ config_version=5
 [application]
 
 config/name="jodot"
+run/main_scene="uid://bp7w0rbvscf1"
 config/features=PackedStringArray("4.7", "GL Compatibility")

@@ -12,7 +12,6 @@ func _ready() -> void:
 		curtain.close()
 	if current_level_scene:
 		load_scene(current_level_scene)
-		commit()
 
 ## Instantiates [param scn] and makes it the pending level. Does not touch the
 ## tree; call [method commit] (or use [method transition_to]) to swap it in.
