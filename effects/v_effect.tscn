@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bp0vk2xhef62q"]
+[gd_scene format=3 uid="uid://bp0vk2xhef62q"]
 
-[ext_resource type="Texture2D" uid="uid://dupvwiyku04u7" path="res://vfx/vfx.png" id="1_kb015"]
-[ext_resource type="Script" uid="uid://dewoyrqelspf1" path="res://vfx/v_effect.gd" id="2_kb015"]
+[ext_resource type="Texture2D" path="res://vfx/vfx.png" id="1_kb015"]
+[ext_resource type="Script" uid="uid://b8di5yk26ucpu" path="res://effects/v_effect.gd" id="2_kb015"]
 
 [node name="VEffect" type="Sprite2D"]
 texture = ExtResource("1_kb015")

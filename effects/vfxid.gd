@@ -5,7 +5,7 @@ class_name VFXID
 @export var invert = false
 
 func play(n: Node) -> Variant:
-	var fx= Vfx.play(id, n)
+	var fx= VFX.play(id, n)
 	if random_flip:
 		fx.random_hflip=true
 		fx.random_vflip=true

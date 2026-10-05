@@ -1,33 +1,11 @@
 extends Node
 class_name VFX
 
-func acquire(at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
-	var vs: VFXSprite = pool.next(at)
-	assert(vs)
-	assert(at and is_instance_valid(at))
-	Game.add_to_playfield(vs, at)
-	vs.position += offset
-	#vs.reset_physics_interpolation()
-	return vs
+static var effects: Dictionary
+static var pool: Pool
 
-func get_animation(id: StringName) -> Subframes:
-	var anim = effects[id]
-	if anim is Array:
-		anim = anim.pick_random()
-	return anim
-
-func play(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
-	var vs:VFXSprite = acquire(at, offset)
-	if has_method(id):
-		self[id].call(vs)
-	vs.play(get_animation(id))
-	return vs
-
-
-func play_looping(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
-	var vs:VFXSprite = acquire(at, offset)
-	vs.play(get_animation(id), -1)
-	return vs
+static var _instance: VFX
+static var _built := false
 
 class Subframes:
 	var start: int
@@ -40,12 +18,18 @@ class Subframes:
 		self.rate = rate
 		self.label = label
 
-var json = preload("res://vfx/vfx.json")
-var effects: Dictionary
-var pool: Pool
 func _ready():
+	_instance = self
+
+## Parses the frame table and builds the sprite pool, on first use.
+static func _build():
+	if _built:
+		return
+	_built = true
+
 	pool=Pool.new(preload("res://vfx/v_effect.tscn"), 16)
 
+	var json = preload("res://vfx/vfx.json")
 	var r = RegEx.new()
 	r.compile("[^0-9]+")
 	for tag in json.data.meta.frameTags:
@@ -65,3 +49,33 @@ func _ready():
 		else:
 			effects[tag.name] = v
 	print("Compiled vfx table:\n%s" % effects)
+
+static func acquire(at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
+	_build()
+	var vs: VFXSprite = pool.next(at)
+	assert(vs)
+	assert(at and is_instance_valid(at))
+	Game.add_to_playfield(vs, at)
+	vs.position += offset
+	#vs.reset_physics_interpolation()
+	return vs
+
+static func get_animation(id: StringName) -> Subframes:
+	_build()
+	var anim = effects[id]
+	if anim is Array:
+		anim = anim.pick_random()
+	return anim
+
+static func play(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
+	var vs:VFXSprite = acquire(at, offset)
+	if _instance and _instance.has_method(id):
+		_instance[id].call(vs)
+	vs.play(get_animation(id))
+	return vs
+
+
+static func play_looping(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
+	var vs:VFXSprite = acquire(at, offset)
+	vs.play(get_animation(id), -1)
+	return vs
