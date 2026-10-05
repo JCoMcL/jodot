@@ -1,33 +1,10 @@
 class_name LevelContainer
-extends Node2D
+extends Node
 
-## Hosts one level scene at a time and swaps between them behind a [Curtain],
-## so a level change is never a visible hitch.
-##
-## Works for 2D and 3D levels. A [Node3D] level is parented under
-## [member viewport_container] so it renders inside the 2D tree, the way a
-## 3D level shown behind 2D UI would; everything else is parented directly.
-## Leave [member viewport_container] empty to keep 3D in the same tree.
-
-## Shown when the container first enters the tree.
 @export var current_level_scene: PackedScene = null
-
-## Path to the [Curtain] used to hide transitions. Optional: if it's unset or
-## the node is missing, transitions just happen instantly.
-@export var curtain_path: NodePath = ^"Overlay/Curtain"
-
-## Where [Node3D] levels are parented, so they render behind the 2D UI.
-@export var viewport_container_path: NodePath = ^""
-
-## The level currently in the tree.
 var current_level: Node = null
 
-## The level being swapped out, kept alive for one frame so it isn't freed
-## before its replacement is ready.
-var old_level: Node = null
-
-@onready var curtain: Curtain = get_node_or_null(curtain_path) as Curtain
-@onready var viewport_container: Node = get_node_or_null(viewport_container_path)
+var curtain:Curtain
 
 func _ready() -> void:
 	if curtain:
@@ -42,29 +19,12 @@ func _ready() -> void:
 func load_scene(scn: PackedScene) -> Node:
 	if current_level and current_level.get_parent():
 		remove_child(current_level)
-		old_level = current_level
+		current_level.queue_free()
+		remove_child(current_level)
 	current_level_scene = scn
 	current_level = scn.instantiate()
+	add_child(current_level)
 	return current_level
-
-## Parents the pending level, disposing of the previous one, then reopens the
-## curtain.
-func commit() -> void:
-	if old_level and is_instance_valid(old_level):
-		old_level.queue_free()
-	old_level = null
-	if not current_level:
-		if curtain:
-			curtain.open()
-		return
-
-	if current_level is Node3D and viewport_container:
-		viewport_container.add_child(current_level)
-	else:
-		add_child(current_level)
-
-	if curtain:
-		curtain.open()
 
 ## Closes the curtain, swaps to [param scn], and reopens.
 ##
@@ -90,7 +50,7 @@ func transition_to(scn: PackedScene, bring: Array[Node] = [], entrypoint: NodePa
 			if n is Node2D:
 				n.position = relative_position
 			n.reset_physics_interpolation()
-	commit()
+	curtain.open()
 
 ## Reloads [member current_level_scene] from scratch.
 func reset_level() -> void:

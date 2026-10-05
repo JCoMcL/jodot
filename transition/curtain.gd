@@ -2,28 +2,9 @@
 class_name Curtain
 extends ColorRect
 
-## A full-screen wipe used to hide a level change behind. Assign any
-## curtain-shaped [ShaderMaterial] and drive it with [method close] and
-## [method open].
-##
-## The material must expose a `factor` float where **1.0 is fully closed and
-## 0.0 fully open**, which is the convention [code]curtain.gdshader[/code] and
-## [code]curtain_thats_all_folks.gdshader[/code] both follow. A `direction`
-## uniform (0 down, 1 up, 2 left, 3 right) is set if the shader has one and
-## ignored if it doesn't, so the two bundled shaders are interchangeable: drag
-## either .tres onto [member CanvasItem.material] and it just works.
-
-## The screen edge the curtain travels from, and back to.
 enum {DOWN, UP, LEFT, RIGHT}
-
-## Default length of a wipe, in seconds.
 @export var duration := 0.5
-
-## Which way the curtain wipes on the first [method open].
 @export var direction := UP
-
-## Whether [method open] runs on entering the tree, so a curtain doesn't start
-## the game stuck shut.
 @export var open_on_ready := true
 
 @export_tool_button("close", "ControlAlignCenter") var close_button = close
@@ -57,8 +38,6 @@ func new_tween() -> Tween:
 	current_tween = create_tween()
 	return current_tween
 
-## Wipes the curtain shut. Returns the tween's [code]finished[/code] signal, so
-## `await curtain.close()` waits for it.
 func close(from_direction := direction, specific_duration := duration) -> Signal:
 	_set_direction(from_direction)
 	visible = true
@@ -66,7 +45,6 @@ func close(from_direction := direction, specific_duration := duration) -> Signal
 	t.tween_method(set_openness, get_openness(), 0.0, specific_duration * get_openness())
 	return t.finished
 
-## Wipes the curtain away. Returns the tween's [code]finished[/code] signal.
 func open(to_direction := direction, specific_duration := duration) -> Signal:
 	_set_direction(to_direction)
 	var t = new_tween()
