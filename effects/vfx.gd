@@ -27,9 +27,9 @@ static func _build():
 		return
 	_built = true
 
-	pool=Pool.new(preload("res://vfx/v_effect.tscn"), 16)
+	pool=Pool.new(preload("res://effects/v_effect.tscn"), 16)
 
-	var json = preload("res://vfx/vfx.json")
+	var json = preload("res://effects/vfx.json")
 	var r = RegEx.new()
 	r.compile("[^0-9]+")
 	for tag in json.data.meta.frameTags:
