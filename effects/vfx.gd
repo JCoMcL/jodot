@@ -29,7 +29,7 @@ static func _build():
 
 	pool=Pool.new(preload("res://effects/v_effect.tscn"), 16)
 
-	var json = preload("res://effects/vfx.json")
+	var json = load("res://effects/vfx.json")
 	var r = RegEx.new()
 	r.compile("[^0-9]+")
 	for tag in json.data.meta.frameTags:
@@ -55,7 +55,7 @@ static func acquire(at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
 	var vs: VFXSprite = pool.next(at)
 	assert(vs)
 	assert(at and is_instance_valid(at))
-	Game.add_to_playfield(vs, at)
+	#Game.add_to_playfield(vs, at)
 	vs.position += offset
 	#vs.reset_physics_interpolation()
 	return vs
