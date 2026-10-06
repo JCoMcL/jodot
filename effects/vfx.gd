@@ -3,7 +3,7 @@ class_name VFX
 
 # --- Static Part ---
 
-static var effects: Dictionary[StringName,Variant]: # Variant: either Subframes or Array[Subframes]
+static var effects: Dictionary[StringName,Array]: # Array[Subframes]
 	get():
 		if not effects:
 			effects = build_effects_table(
@@ -26,8 +26,8 @@ class Subframes:
 		self.rate = rate
 		self.label = label
 
-static func build_effects_table(spritesheet:Texture2D, spritesheet_json:Object) -> Dictionary[StringName, Variant]:
-	var out:Dictionary[StringName, Variant]
+static func build_effects_table(spritesheet:Texture2D, spritesheet_json:Object) -> Dictionary[StringName, Array]:
+	var out:Dictionary[StringName, Array]
 	var r = RegEx.new()
 	r.compile("[^0-9]+")
 	for tag in spritesheet_json.data.meta.frameTags:
@@ -39,31 +39,28 @@ static func build_effects_table(spritesheet:Texture2D, spritesheet_json:Object) 
 			tag.data if tag.has("data") else 20,
 			tag.name
 		)
-		if k != tag.name: # contains numbers and is therefore part of a group
-			if out.has(k):
-				assert(out[k] is Array)
-				out[k].append(v)
+		if out.has(k):
+			if k != tag.name: # contains numbers and is therefore part of a group
+					assert(out[k] is Array)
+					out[k].append(v)
 			else:
-				out[k] = [v]
+				print("warn: key clash in vfx table: ",k)
 		else:
-			out[tag.name] = v
+			out[k] = [v]
 	print("built vfx table:\n%s" % out)
 	return out
 
 static func acquire(at:Node, offset: Vector2=Vector2.ZERO) -> VFXSprite:
-	var vs: VFXSprite = pool.next(at)
+	var vs: VFXSprite = pool.next(null)
 	assert(vs)
 	assert(at and is_instance_valid(at))
-	#Game.add_to_playfield(vs, at)
-	vs.position += offset
+	vs.position = offset
+	at.add_child(vs)
 	#vs.reset_physics_interpolation()
 	return vs
 
 static func get_animation(id: StringName) -> Subframes:
-	var anim = effects[id]
-	if anim is Array:
-		anim = anim.pick_random()
-	return anim
+	return effects[id].pick_random()
 
 static func play(id: StringName, at:Node, offset: Vector2=Vector2.ZERO) -> VFXSprite:
 	var vs:VFXSprite = acquire(at, offset)
