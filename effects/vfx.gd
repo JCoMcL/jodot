@@ -1,57 +1,58 @@
-extends Node
+extends Object
 class_name VFX
 
-static var effects: Dictionary
+# --- Static Part ---
+
+static var effects: Dictionary[StringName,Variant]: # Variant: either Subframes or Array[Subframes]
+	get():
+		if not effects:
+			effects = build_effects_table(
+				preload("res://effects/vfx.png"),
+				preload("res://effects/vfx.json"),
+			)
+		return effects
 static var pool: Pool
 
-static var _instance: VFX
-static var _built := false
-
 class Subframes:
+	var spritesheet:Texture2D
 	var start: int
 	var end: int
 	var rate: int
 	var label: StringName
-	func _init(start, end, rate, label):
+	func _init(spritesheet, start, end, rate, label):
+		self.spritesheet = spritesheet
 		self.start = start
 		self.end = end
 		self.rate = rate
 		self.label = label
 
-func _ready():
-	_instance = self
-
-## Parses the frame table and builds the sprite pool, on first use.
-static func _build():
-	if _built:
-		return
-	_built = true
-
+static func build_effects_table(spritesheet:Texture2D, spritesheet_json:Object) -> Dictionary[StringName, Variant]:
+	var out:Dictionary[StringName, Variant]
 	pool=Pool.new(preload("res://effects/v_effect.tscn"), 16)
 
-	var json = load("res://effects/vfx.json")
 	var r = RegEx.new()
 	r.compile("[^0-9]+")
-	for tag in json.data.meta.frameTags:
+	for tag in spritesheet_json.data.meta.frameTags:
 		var k = r.search(tag.name).get_string()
 		var v = Subframes.new(
+			spritesheet,
 			int(tag.from),
 			int(tag.to),
 			tag.data if tag.has("data") else 20,
 			tag.name
 		)
 		if k != tag.name: # contains numbers and is therefore part of a group
-			if effects.has(k):
-				assert(effects[k] is Array)
-				effects[k].append(v)
+			if out.has(k):
+				assert(out[k] is Array)
+				out[k].append(v)
 			else:
-				effects[k] = [v]
+				out[k] = [v]
 		else:
-			effects[tag.name] = v
-	print("Compiled vfx table:\n%s" % effects)
+			out[tag.name] = v
+	print("built vfx table:\n%s" % out)
+	return out
 
 static func acquire(at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
-	_build()
 	var vs: VFXSprite = pool.next(at)
 	assert(vs)
 	assert(at and is_instance_valid(at))
@@ -61,7 +62,6 @@ static func acquire(at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
 	return vs
 
 static func get_animation(id: StringName) -> Subframes:
-	_build()
 	var anim = effects[id]
 	if anim is Array:
 		anim = anim.pick_random()
@@ -69,8 +69,6 @@ static func get_animation(id: StringName) -> Subframes:
 
 static func play(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
 	var vs:VFXSprite = acquire(at, offset)
-	if _instance and _instance.has_method(id):
-		_instance[id].call(vs)
 	vs.play(get_animation(id))
 	return vs
 
@@ -79,3 +77,4 @@ static func play_looping(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO
 	var vs:VFXSprite = acquire(at, offset)
 	vs.play(get_animation(id), -1)
 	return vs
+

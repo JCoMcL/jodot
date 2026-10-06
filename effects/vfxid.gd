@@ -13,3 +13,4 @@ func play(n: Node) -> Variant:
 	if invert:
 		fx.flip_v = true
 	return
+

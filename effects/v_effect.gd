@@ -14,6 +14,8 @@ func stop():
 func play(s: VFX.Subframes, loops:int = 1):
 	assert(not playing)
 	playing = true
+	if s.spritesheet:
+		set_spritesheet(s.spritesheet)
 	while playing:
 		for i in range(s.end - s.start + 1):
 			frame = s.start + i
@@ -26,5 +28,10 @@ func play(s: VFX.Subframes, loops:int = 1):
 		playing = loops != 0 #therefore negative numbers loop infinitely
 	_expire()
 
-func _ready():
+func set_spritesheet(t:Texture2D):
+	texture = t
 	hframes = texture.get_size().x / texture.get_size().y
+
+func _ready():
+	if texture:
+		set_spritesheet(texture)
