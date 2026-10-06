@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://bf4en5m778svj"]
 
-[ext_resource type="Shader" uid="uid://dypbkrt1g7tws" path="res://effects/sprite_fx.gdshader" id="1_1i0nt"]
+[ext_resource type="Shader" uid="uid://dypbkrt1g7tws" path="res://addons/jodot/effects/sprite_fx.gdshader" id="1_1i0nt"]
 
 [resource]
 resource_local_to_scene = true

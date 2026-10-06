@@ -7,11 +7,11 @@ static var effects: Dictionary[StringName,Array]: # Array[Subframes]
 	get():
 		if not effects:
 			effects = build_effects_table(
-				preload("res://effects/vfx.png"),
-				preload("res://effects/vfx.json"),
+				preload("res://addons/jodot/effects/vfx.png"),
+				preload("res://addons/jodot/effects/vfx.json"),
 			)
 		return effects
-static var pool=Pool.new(preload("res://effects/v_effect.tscn"), 16)
+static var pool=Pool.new(preload("res://addons/jodot/effects/v_effect.tscn"), 16)
 
 class Subframes:
 	var spritesheet:Texture2D

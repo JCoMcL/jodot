@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bp7w0rbvscf1"]
 
-[ext_resource type="Material" uid="uid://bmfwdpbtlok7y" path="res://transition/curtain_thats_all_folks.tres" id="1_8vaes"]
-[ext_resource type="Script" uid="uid://cxvgq4dxm0ghd" path="res://transition/level-container.gd" id="2_container"]
-[ext_resource type="Script" uid="uid://crs1s25mbl4em" path="res://transition/curtain.gd" id="3_curtain"]
+[ext_resource type="Material" uid="uid://bmfwdpbtlok7y" path="res://addons/jodot/transition/curtain_thats_all_folks.tres" id="1_8vaes"]
+[ext_resource type="Script" uid="uid://cxvgq4dxm0ghd" path="res://addons/jodot/transition/level-container.gd" id="2_container"]
+[ext_resource type="Script" uid="uid://crs1s25mbl4em" path="res://addons/jodot/transition/curtain.gd" id="3_curtain"]
 
 [node name="LevelContainer" type="Node2D" unique_id=677424085]
 script = ExtResource("2_container")

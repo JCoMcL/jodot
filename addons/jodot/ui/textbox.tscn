@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://y3ri0ivk8tb2"]
 
-[ext_resource type="Script" uid="uid://c8mnyi558yhra" path="res://ui/textbox.gd" id="1_gs7l0"]
+[ext_resource type="Script" uid="uid://d0awys1mfkvhr" path="res://addons/jodot/ui/textbox.gd" id="1_gs7l0"]
 
 [node name="Panel" type="PanelContainer" unique_id=95958961]
 size_flags_horizontal = 3

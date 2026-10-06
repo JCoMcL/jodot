@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cnunloskn8t04"]
 
-[ext_resource type="Script" uid="uid://binog63lklst" path="res://examples/effects.gd" id="1_txbs1"]
+[ext_resource type="Script" uid="uid://binog63lklst" path="res://addons/jodot/examples/effects.gd" id="1_txbs1"]
 
 [node name="Effects" type="Control" unique_id=1341343087]
 layout_mode = 3

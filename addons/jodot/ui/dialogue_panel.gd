@@ -32,10 +32,10 @@ func set_speaker_portrait(tex:Texture2D):
 		25
 	)
 
-const textbox_scn = preload("res://ui/textbox.tscn")
-const button_scn = preload("res://ui/textbox_answer.tscn")
-const descbox_scn = preload("res://ui/textbox_description.tscn")
-const questionbox_scn = preload("res://ui/textbox_question.tscn")
+const textbox_scn = preload("res://addons/jodot/ui/textbox.tscn")
+const button_scn = preload("res://addons/jodot/ui/textbox_answer.tscn")
+const descbox_scn = preload("res://addons/jodot/ui/textbox_description.tscn")
+const questionbox_scn = preload("res://addons/jodot/ui/textbox_question.tscn")
 
 func add_to_timeline(n:Control):
 	timeline.add_child(n)

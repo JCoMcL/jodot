@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cm3n8k1wq4y7p"]
 
-[ext_resource type="Shader" uid="uid://boodi2bwyg1k7" path="res://transition/curtain.gdshader" id="1_wipe"]
+[ext_resource type="Shader" uid="uid://boodi2bwyg1k7" path="res://addons/jodot/transition/curtain.gdshader" id="1_wipe"]
 
 [resource]
 resource_local_to_scene = true

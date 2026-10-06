@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cpi2hvhc0scgm"]
 
-[ext_resource type="Script" uid="uid://dmhx5kuub02rp" path="res://ui/dialogue_panel.gd" id="1_nn4bx"]
-[ext_resource type="Script" uid="uid://cacoku6yyj3xt" path="res://ui/autoscroll.gd" id="2_xd27b"]
+[ext_resource type="Script" uid="uid://dckaeie6nuyef" path="res://addons/jodot/ui/dialogue_panel.gd" id="1_nn4bx"]
+[ext_resource type="Script" uid="uid://bj38vrj26b7bu" path="res://addons/jodot/ui/autoscroll.gd" id="2_xd27b"]
 
 [node name="DialogueArea" type="Control" unique_id=83460316]
 visible = false
