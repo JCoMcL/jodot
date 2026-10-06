@@ -11,7 +11,7 @@ static var effects: Dictionary[StringName,Variant]: # Variant: either Subframes 
 				preload("res://effects/vfx.json"),
 			)
 		return effects
-static var pool: Pool
+static var pool=Pool.new(preload("res://effects/v_effect.tscn"), 16)
 
 class Subframes:
 	var spritesheet:Texture2D
@@ -28,8 +28,6 @@ class Subframes:
 
 static func build_effects_table(spritesheet:Texture2D, spritesheet_json:Object) -> Dictionary[StringName, Variant]:
 	var out:Dictionary[StringName, Variant]
-	pool=Pool.new(preload("res://effects/v_effect.tscn"), 16)
-
 	var r = RegEx.new()
 	r.compile("[^0-9]+")
 	for tag in spritesheet_json.data.meta.frameTags:
@@ -52,7 +50,7 @@ static func build_effects_table(spritesheet:Texture2D, spritesheet_json:Object) 
 	print("built vfx table:\n%s" % out)
 	return out
 
-static func acquire(at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
+static func acquire(at:Node, offset: Vector2=Vector2.ZERO) -> VFXSprite:
 	var vs: VFXSprite = pool.next(at)
 	assert(vs)
 	assert(at and is_instance_valid(at))
@@ -67,14 +65,13 @@ static func get_animation(id: StringName) -> Subframes:
 		anim = anim.pick_random()
 	return anim
 
-static func play(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
+static func play(id: StringName, at:Node, offset: Vector2=Vector2.ZERO) -> VFXSprite:
 	var vs:VFXSprite = acquire(at, offset)
 	vs.play(get_animation(id))
 	return vs
 
 
-static func play_looping(id: StringName, at:Node2D, offset: Vector2=Vector2.ZERO) -> VFXSprite:
+static func play_looping(id: StringName, at:Node, offset: Vector2=Vector2.ZERO) -> VFXSprite:
 	var vs:VFXSprite = acquire(at, offset)
 	vs.play(get_animation(id), -1)
 	return vs
-

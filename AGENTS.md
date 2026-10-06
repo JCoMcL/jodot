@@ -86,3 +86,73 @@ Match the surrounding file rather than generic Godot style:
 - `make build` cross-exports Web, Windows, and Linux via the Godot CLI.
 - There is no test suite and no linter configured; verification is opening the project
   in the editor or running `godot --headless` and watching for parse errors.
+
+## Testing with the Godot CLI
+
+There is no test suite or linter, so every check is a headless run. The golden rule:
+**a test run should rarely need more than 10 seconds and never more than 30.** Bound
+every run with `timeout`.
+
+### Run the project / a scene
+
+The default harness is just:
+
+```
+timeout 10 godot --headless > /tmp/log.txt 2>&1
+```
+
+This runs the project's `<main_scene>` from `project.godot`. When iterating on one
+scene, set `run/main_scene` to it (by UID) so this one-liner is all you ever need.
+
+- Run a specific scene instead: `timeout 10 godot --headless res://dir/scene.tscn`.
+- Run a single main-loop iteration to smoke-test "does it boot without parse errors":
+  `godot --headless --quit`.
+- Run from any cwd against a project: `godot --path /abs/path/to/project --headless`.
+- Run a scene-free logic probe with an `extends SceneTree` script (no window, no
+  scene, exits with your chosen code via `quit(0)`):
+  ```
+  timeout 10 godot --headless --script res://tests/probe.gd
+  ```
+- Parse-gate a script / whole project (exit 0 = clean, 1 = errors):
+  `godot --headless --check-only --script res://file.gd`
+
+### stdout vs stderr (the #1 gotcha)
+
+- `print()` and the version banner go to **stdout**.
+- `printerr()`, `push_error()`, `push_warning()`, and every engine `ERROR:`/`WARNING:`
+  go to **stderr** — this includes C++ hard errors like `Can't add child ... already
+  has a parent`, which in the editor only surface in the Debugger pane. In headless,
+  `print()` alone will silently miss them.
+
+Always capture both: `2>&1` (or split with `> out 2> err` to keep prints separate from
+diagnostics). When merged to one file, stdout is block-buffered and stderr is not, so
+interleaving order is unreliable — match on stable markers, never on line position.
+
+### Time and pacing (verified on this box)
+
+- Headless runs **uncapped** at ~100–150 fps. `--quit-after N` counts main-loop
+  iterations, *not* seconds: with `--quit-after 2000` expect roughly 10–20 s of game
+  time. It is only a safety deadline, not a wall-clock.
+- `--fixed-fps` is **not** a headless pace-knob — in testing it made the loop spin to
+  ~100k iterations/s. Don't use it to time runs.
+- Prefer wall-clock logic *inside* the scene: have `_process` check
+  `Time.get_ticks_msec()` and call `get_tree().quit()` once the assertion window
+  passes, then bound the whole thing with `timeout` anyway.
+
+### Exit codes
+
+- In-script `quit(code)` → that code.
+- `--check-only`: 0 clean, 1 on parse error.
+- `timeout` killing a hung run → 124.
+
+### Pitfalls
+
+- **Unbounded output fills the disk.** A runaway bug prints a backtrace every frame; a
+  real incident produced 1.5 GB in under two minutes and filled `/tmp`. Always redirect
+  to a file and keep test scenes print-bounded (greppable stable markers).
+- **Count, don't eyeball.** After a run, `grep -cE 'SCRIPT ERROR|^ERROR' /tmp/log.txt`
+  is a regression signal; `grep -c '^returning'` counts pool returns, etc.
+- **A run with no `--quit-after`/`--quit`/in-script `quit()` never exits** — `timeout`
+  is mandatory, treat 124 as "hung, investigate".
+- Final visual/UX confirmation still happens in the editor; the CLI is for logic,
+  regressions, and "does it parse and run clean".

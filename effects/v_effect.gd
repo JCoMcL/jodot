@@ -19,6 +19,9 @@ func play(s: VFX.Subframes, loops:int = 1):
 	while playing:
 		for i in range(s.end - s.start + 1):
 			frame = s.start + i
+			if not is_node_ready():
+				print("warn: ",self," wating for ready")
+				await ready
 			await get_tree().create_timer(1.0/s.rate).timeout
 			if not playing:
 				break
