@@ -1,35 +1,38 @@
-extends AudioStreamPlayer
+extends Node
 class_name SFX
+
+## Audio directories scanned for direct child audio files. Missing directories are
+## skipped silently, so this doubles as the per-instance configuration.
+@export var audio_dirs: Array[String] = [
+	"res://audio/plain_sfx",
+	"res://audio/bitcrushed_sfx",
+	"res://audio/eating",
+]
 
 var sfx = {}
 
-static var _instance: SFX
-
-## The SFX player `from` should use: its own `_sfx_player` if it declares one,
-## otherwise the registered player.
-static func get_sfx_player(from: Node) -> SFX:
-	if "_sfx_player" in from and from._sfx_player is SFX:
-		return from._sfx_player
-	return _instance
-
-func _add_audio_directory(dir:String):
-	for f in ResourceLoader.list_directory(dir):
-		var res_name = "%s/%s" % [dir, f]
-		if f.ends_with(".wav") or f.ends_with(".mp3") or f.ends_with(".ogg"):
-			var res = ResourceLoader.load(res_name)
-			if res:
-				var key = f.get_basename()
-				assert(key)
-				if sfx.has(key):
-					print("Warn: deuplicate sfx entry for ",key)
-				sfx[key] = res
-		else:
-			_add_audio_directory(res_name)
+## Adds every audio file directly inside `dir` (no recursion) to the sfx table,
+## keyed by basename.
+func add_audio_directory(dir: String):
+	var d = DirAccess.open(dir)
+	if d == null:
+		return
+	for f in d.get_files():
+		if !(f.ends_with(".wav") or f.ends_with(".mp3") or f.ends_with(".ogg")):
+			continue
+		var res = ResourceLoader.load("%s/%s" % [dir, f])
+		if res:
+			var key = f.get_basename()
+			if !key:
+				continue
+			if sfx.has(key):
+				print("Warn: duplicate sfx entry for ", key)
+			sfx[key] = res
 
 func get_playback() -> AudioStreamPlaybackPolyphonic:
-	if not has_stream_playback():
-		play()
-	return get_stream_playback()
+	if not get_player().has_stream_playback():
+		get_player().play()
+	return get_player().get_stream_playback()
 
 class SFXControl:
 	var master
@@ -64,11 +67,32 @@ func play_sfx(effect_name:String) -> SFXControl:
 
 	return SFXControl.new(pb, pb.play_stream(sfx[effect_name]), effect_name)
 
+func get_player() -> Node:
+	for p in [_self_player, _self_2D, _self_3D]:
+		if p:
+			assert(p.has_method("play"))
+			assert("stream" in p)
+			return p
+	return null
+
+# Today we're going to learn how to trick Godot into letting you do multiple inheritence
+var _self_player:AudioStreamPlayer
+var _self_2D:AudioStreamPlayer2D
+var _self_3D:AudioStreamPlayer3D
+
 func _ready():
-	_add_audio_directory("res://audio/plain_sfx")
-	_add_audio_directory("res://audio/bitcrushed_sfx")
-	_add_audio_directory("res://audio/eating")
-	stream = AudioStreamPolyphonic.new()
-	bus = &"SFX"
-	stream.polyphony = 8
-	_instance = self
+	var _self = self as Node
+	if _self is AudioStreamPlayer:
+		_self_player = _self
+	if _self is AudioStreamPlayer2D:
+		_self_2D = _self
+	if _self is AudioStreamPlayer3D:
+		_self_3D = _self
+	else: # In the case of autoload
+		_self_player = AudioStreamPlayer.new()
+		print("created new global ",_self_player)
+
+	for dir in audio_dirs:
+		add_audio_directory(dir)
+	get_player().stream = AudioStreamPolyphonic.new()
+	get_player().stream.polyphony = 8
