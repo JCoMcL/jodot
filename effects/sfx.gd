@@ -4,12 +4,11 @@ class_name SFX
 ## Audio directories scanned for direct child audio files. Missing directories are
 ## skipped silently, so this doubles as the per-instance configuration.
 @export var audio_dirs: Array[String] = [
-	"res://audio/plain_sfx",
-	"res://audio/bitcrushed_sfx",
-	"res://audio/eating",
+	"res://audio/chip_synth",
+	"res://audio/warioware_sfx"
 ]
 
-var sfx = {}
+var sfx:Dictionary[StringName,AudioStream]
 
 ## Adds every audio file directly inside `dir` (no recursion) to the sfx table,
 ## keyed by basename.
@@ -94,5 +93,6 @@ func _ready():
 
 	for dir in audio_dirs:
 		add_audio_directory(dir)
+	print(self,": added %d entries to sfx library" % sfx.size())
 	get_player().stream = AudioStreamPolyphonic.new()
 	get_player().stream.polyphony = 8
