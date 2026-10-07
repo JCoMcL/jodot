@@ -5,7 +5,7 @@ class_name SFX
 ## skipped silently, so this doubles as the per-instance configuration.
 @export var audio_dirs: Array[String] = [
 	"res://audio/chip_synth",
-	"res://audio/warioware_sfx"
+	"res://audio/warioware_diy"
 ]
 
 var sfx:Dictionary[StringName,AudioStream]
@@ -83,9 +83,9 @@ func _ready():
 	var _self = self as Node
 	if _self is AudioStreamPlayer:
 		_self_player = _self
-	if _self is AudioStreamPlayer2D:
+	elif _self is AudioStreamPlayer2D:
 		_self_2D = _self
-	if _self is AudioStreamPlayer3D:
+	elif _self is AudioStreamPlayer3D:
 		_self_3D = _self
 	else: # In the case of autoload
 		_self_player = AudioStreamPlayer.new()
