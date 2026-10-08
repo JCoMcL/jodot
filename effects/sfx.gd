@@ -12,21 +12,19 @@ var sfx:Dictionary[StringName,AudioStream]
 
 ## Adds every audio file directly inside `dir` (no recursion) to the sfx table,
 ## keyed by basename.
-func add_audio_directory(dir: String):
-	var d = DirAccess.open(dir)
-	if d == null:
-		return
-	for f in d.get_files():
-		if !(f.ends_with(".wav") or f.ends_with(".mp3") or f.ends_with(".ogg")):
-			continue
-		var res = ResourceLoader.load("%s/%s" % [dir, f])
-		if res:
-			var key = f.get_basename()
-			if !key:
-				continue
-			if sfx.has(key):
-				print("Warn: duplicate sfx entry for ", key)
-			sfx[key] = res
+func add_audio_directory(dir:String):
+	for f in ResourceLoader.list_directory(dir):
+		var res_name = "%s/%s" % [dir, f]
+		if f.ends_with(".wav") or f.ends_with(".mp3") or f.ends_with("*.ogg"):
+			var res = ResourceLoader.load(res_name)
+			if res:
+				var key = f.get_basename()
+				assert(key)
+				if sfx.has(key):
+					print("Warn: deuplicate sfx entry for ",key)
+				sfx[key] = res
+		else:
+			add_audio_directory(res_name)
 
 func get_playback() -> AudioStreamPlaybackPolyphonic:
 	if not get_player().has_stream_playback():
