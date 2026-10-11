@@ -1,8 +1,7 @@
 extends Node
 class_name SFX
 
-## Audio directories scanned for direct child audio files. Missing directories are
-## skipped silently, so this doubles as the per-instance configuration.
+## searched recursively for audio files.
 @export var audio_dirs: Array[String] = [
 	"res://audio/chip_synth",
 	"res://audio/warioware_diy"
@@ -10,8 +9,6 @@ class_name SFX
 
 var sfx:Dictionary[StringName,AudioStream]
 
-## Adds every audio file directly inside `dir` (no recursion) to the sfx table,
-## keyed by basename.
 func add_audio_directory(dir:String):
 	for f in ResourceLoader.list_directory(dir):
 		var res_name = "%s/%s" % [dir, f]
