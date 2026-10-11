@@ -56,3 +56,15 @@ static func pick_random_exp(a: Array):
 
 static func vary(f: float, factor: float):
 	return f + (randf() - 0.5) * f * factor
+
+static func random_point(rect: Rect2, small: Rect2 = Rect2()) -> Vector2:
+	## a uniformly random point inside `rect` where a `small` rect anchored at
+	## that point (its `position`) still fits entirely inside `rect`
+	var origin: Vector2 = rect.position
+	var limit: Vector2 = rect.end - small.size
+	limit.x = maxf(limit.x, origin.x)
+	limit.y = maxf(limit.y, origin.y)
+	return Vector2(
+		rng.randf_range(origin.x, limit.x),
+		rng.randf_range(origin.y, limit.y)
+	)
