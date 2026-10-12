@@ -1,5 +1,8 @@
 extends Node
-class_name SFX
+class_name SFXPlayer
+## Loads your sound effects libraries at startup,
+## and plays any track given the basename of the file.
+## Can play 8 sounds concurrently. If you need more than that, you're crazy.
 
 ## searched recursively for audio files.
 @export var audio_dirs: Array[String] = [
@@ -28,6 +31,7 @@ func get_playback() -> AudioStreamPlaybackPolyphonic:
 		get_player().play()
 	return get_player().get_stream_playback()
 
+## Used to control audio played by [SFXPlayer]
 class SFXControl:
 	var master
 	var id
@@ -37,9 +41,11 @@ class SFXControl:
 		self.id = id
 		self.label = label
 
+	## Will be false if the stream has already finished playing
 	func valid() -> bool:
 		return master.is_stream_playing(id)
 
+	## Returns false if not valid
 	func set_volume(volume_db: float) -> bool:
 		if not valid():
 			return false
@@ -49,6 +55,9 @@ class SFXControl:
 	func stop():
 		master.stop_stream(id)
 
+## Plays an audio clip from the sfx library given the basename of the file.
+## The basename is the filename without the extension, so
+## [code]res://audio/pop.wav[/code] would have the [param effect_name] [code]"pop"[/code]
 func play_sfx(effect_name:String) -> SFXControl:
 	if not sfx.has(effect_name):
 		print("Warn: no sfx named %s" % effect_name)
@@ -61,6 +70,8 @@ func play_sfx(effect_name:String) -> SFXControl:
 
 	return SFXControl.new(pb, pb.play_stream(sfx[effect_name]), effect_name)
 
+## Get's either [AudioStreamPlayer], [AudioStreamPlayer2D], or [AudioStreamPlayer3D],
+## depending on which type of node this is
 func get_player() -> Node:
 	for p in [_self_player, _self_2D, _self_3D]:
 		if p:
@@ -84,6 +95,7 @@ func _ready():
 		_self_3D = _self
 	else: # In the case of autoload
 		_self_player = AudioStreamPlayer.new()
+		add_child(_self_player)
 		print("created new global ",_self_player)
 
 	for dir in audio_dirs:
